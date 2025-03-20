@@ -18,7 +18,7 @@ class TaskService {
     }
 
     async getAll(userId) {
-        const tasks = await TaskModel.findAll({where: {userId}})
+        const tasks = await TaskModel.findAll({where: {userId}, order: [["id", "ASC"]]})
         return tasks
     }
 

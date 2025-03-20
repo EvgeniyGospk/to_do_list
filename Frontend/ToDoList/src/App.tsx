@@ -1,55 +1,63 @@
-import React, {FC, useContext, useEffect, useState} from "react"
-import LoginForm from "./components/LoginForm";
+import React, { FC, useContext, useEffect, useState } from "react";
+import TaskList from "./components/TaskList";
+import AuthModal from "./components/AuthModal";
 import { Context } from "./main";
 import { observer } from "mobx-react-lite";
-import { IUser } from "./models/IUser";
-import UserService from "./services/UserService";
+import { Button, Layout, Typography } from "antd";
+import styles from "./App.module.css";
+
+const { Header, Content } = Layout;
+const { Title } = Typography;
 
 const App: FC = () => {
-    const {store} = useContext(Context)
-    const [users, setUsers] = useState<IUser[]>([])
+  const { store } = useContext(Context);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    useEffect(() => {
-        if(localStorage.getItem("token")) {
-            store.checkAuth()
-        }
-    }, [])
-
-    async function getUsers() {
-        try {
-            const response = await UserService.fetchUsers();
-            setUsers(response.data[0])
-            console.log(response.data[0])
-        } catch (e) {
-            console.log(e)
-        }
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      store.checkAuth();
     }
+  }, []);
 
-    if(store.isLoading) {
-        return <div>Загрузка...</div>
-    }
+  useEffect(() => {
+    setIsAuthModalOpen(!store.isAuth && !store.isLoading);
+  }, [store.isAuth, store.isLoading]);
 
-    if(!store.isAuth) {
-        return (
-            <LoginForm/>
-        )
-    }
+  if (store.isLoading) {
+    return <div className={styles.loading}>Загрузка...</div>;
+  }
 
-    return (
-        <div>
-            <h1>{store.isAuth ? `Пользователь авторизирован ${store.user.email}`  : `АВТОРИЗИРУЙТЕСЬ`}</h1>
-            <h1>{store.user.isActivated ? "Аккаунт подтвержден по почте" : "Подтвердите аккаунт!!!"}</h1>
-            <button onClick={() => store.logout()}>Выйти</button>
-            <div>
-                <button onClick={getUsers}>Получить пользоветелей</button>
-            </div>
-            {users.map(user => {
-                console.log(user)
-                return <div key={user.email}>{user.email}</div>
-            }
-            )}
-        </div>
-    )
-}
+  return (
+    <Layout className={styles.layout}>
+      <Header className={styles.header}>
+        <Title level={3} className={styles.title}>
+          ToDo List
+        </Title>
+        {store.isAuth && (
+          <Button type="link" onClick={() => store.logout()}>
+            Выйти
+          </Button>
+        )}
+      </Header>
+      <Content className={styles.content}>
+        {store.isAuth ? (
+          <>
+            <Title level={4}>
+              Пользователь: {store.user.email}
+              {store.user.isActivated
+                ? " (подтвержден)"
+                : " (подтвердите аккаунт)"}
+            </Title>
+            <TaskList />
+          </>
+        ) : null}
+        <AuthModal
+          open={isAuthModalOpen}
+          onCancel={() => setIsAuthModalOpen(false)}
+        />
+      </Content>
+    </Layout>
+  );
+};
 
 export default observer(App);
