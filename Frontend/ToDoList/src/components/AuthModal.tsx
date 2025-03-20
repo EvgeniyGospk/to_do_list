@@ -23,12 +23,11 @@ const AuthModal: FC<AuthModalProps> = ({ open, onCancel }) => {
         await store.registration(values.email, values.password);
       }
       form.resetFields();
-      onCancel(); 
+      onCancel();
     } catch (e) {
       const errorMessage =
-        e.response?.data?.message || "Произошла ошибка, попробуйте снова";
+        e.response.data.message;
       setError(errorMessage);
-      message.error(errorMessage);
       console.error("Ошибка авторизации:", e);
     }
   };
@@ -38,8 +37,8 @@ const AuthModal: FC<AuthModalProps> = ({ open, onCancel }) => {
       open={open}
       title="Авторизация"
       footer={null}
-      closable={false} 
-      maskClosable={false} 
+      closable={false}
+      maskClosable={false}
     >
       <Tabs
         activeKey={activeTab}
